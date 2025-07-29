@@ -248,13 +248,18 @@
 	
 	function updateCell(r, c, cell) {
 		const state = cellStates[r]?.[c];
+		cell.style.backgroundColor = ""; // Reset background color
 		if (state?.placed) {
 			let span = cell.querySelector('span');
 			if (!span) {
 				span = document.createElement('span');
 				cell.appendChild(span);
 			}
-			span.textContent = '+' + (state.multiplier - 1) * 100 + '%';
+			const percent = (state.multiplier - 1) * 100;
+			span.textContent = '+' + percent + '%';
+			if (percent === 600) {
+				cell.style.backgroundColor = "#a23333";
+			}
 		} else {
 			const span = cell.querySelector('span');
 			if (span) cell.removeChild(span);
