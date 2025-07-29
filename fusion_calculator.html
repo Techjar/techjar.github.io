@@ -189,20 +189,28 @@
 </div>
 
 <script>
+	function getItemOrDefault(item, def) {
+		if (localStorage.getItem(item) !== null)
+			return localStorage.getItem(item);
+		return def;
+	}
+	
 	const grid = document.getElementById('grid');
 
-	let numRows = 5;
-	let numCols = 5;
-	let offsetMode = 'vertical'; // 'horizontal' or 'vertical'
+	let numRows = parseInt(getItemOrDefault('numRows', 5));
+	let numCols = parseInt(getItemOrDefault('numCols', 5));
+	let offsetMode = getItemOrDefault('offsetMode', 'vertical'); // 'horizontal' or 'vertical'
 
 	// State array to persist cell states
 	let cellStates = [];
+	
 	function initStates() {
 		cellStates = [];
 		for (let r = 0; r < numRows; r++) {
 			cellStates.push(new Array(numCols).fill().map(() => ({placed: false, multiplier: 0})));
 		}
 	}
+	initStates();
 	
 	if (localStorage.getItem('cellStates') !== null) {
 		try {
@@ -210,12 +218,11 @@
 		} catch (error) {
 			initStates();
 		}
-	} else {
-		initStates();
 	}
 	
-	calculateResults();
-	updateCells();
+	if (localStorage.getItem('quality') !== null) {
+		document.querySelector('#quality').selectedIndex = parseInt(localStorage.getItem('quality'));
+	}
 
 	function createCell(r, c) {
 		const cell = document.createElement('div');
@@ -335,6 +342,7 @@
 		numRows++;
 		// Add new row to state
 		cellStates.push(new Array(numCols).fill().map(() => ({placed: false, multiplier: 0})));
+		storePersistence();
 		renderGrid();
 	}
 
@@ -351,6 +359,7 @@
 		numCols++;
 		// Add new column state to each row
 		cellStates.forEach(row => row.push({placed: false, multiplier: 0}));
+		storePersistence();
 		renderGrid();
 	}
 
@@ -392,7 +401,7 @@
 				}
 			}
 		}
-		localStorage.setItem('cellStates', JSON.stringify(cellStates));
+		storePersistence();
 
 		const quality = document.querySelector('#quality').value;
 		const power = total * 100;
@@ -401,6 +410,14 @@
 		document.querySelector('#reactors').textContent = `${count}`;
 		document.querySelector('#generators').textContent = `${power / 50}`;
 		document.querySelector('#fusioncells').textContent = `${(count * quality * 0.15).toFixed(2)}/m`;
+	}
+	
+	function storePersistence() {
+		localStorage.setItem('cellStates', JSON.stringify(cellStates));
+		localStorage.setItem('numRows', numRows);
+		localStorage.setItem('numCols', numCols);
+		localStorage.setItem('offsetMode', offsetMode);
+		localStorage.setItem('quality', document.querySelector('#quality').selectedIndex);
 	}
 
 	function getNeighbors(r, c) {
@@ -425,6 +442,7 @@
 		}
 	}
 
+	calculateResults();
 	renderGrid();
 </script>
 
