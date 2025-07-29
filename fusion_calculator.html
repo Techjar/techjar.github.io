@@ -151,6 +151,7 @@
 	<button onclick="addColumn()">+ Column</button>
 	<button onclick="removeColumn()">- Column</button>
 	<button id="toggleoffsetmode" onclick="toggleOffsetMode()">Switch to Horizontal</button>
+	<button onclick="clearCells()">Clear Layout</button>
 </div>
 
 <div id="grid" class="grid"></div>
@@ -202,8 +203,19 @@
 			cellStates.push(new Array(numCols).fill().map(() => ({placed: false, multiplier: 0})));
 		}
 	}
-	initStates();
+	
+	if (localStorage.getItem('cellStates') !== null) {
+		try {
+			cellStates = JSON.parse(localStorage.getItem('cellStates'));
+		} catch (error) {
+			initStates();
+		}
+	} else {
+		initStates();
+	}
+	
 	calculateResults();
+	updateCells();
 
 	function createCell(r, c) {
 		const cell = document.createElement('div');
@@ -261,12 +273,25 @@
 			span.textContent = '+' + percent + '%';
 			if (percent === 600) {
 				cell.style.backgroundColor = "#a23333";
-				cell.title = "Reactor cannot be fueled."
+				cell.title = "Reactor cannot be automatically fueled!"
 			}
 		} else {
 			const span = cell.querySelector('span');
 			if (span) cell.removeChild(span);
 		}
+	}
+	
+	function clearCells() {
+		grid.querySelectorAll('.row, .column').forEach((rowEl, r) => {
+			const cells = rowEl.querySelectorAll('.cell');
+			cells.forEach((cell, c) => {
+				cell.classList.remove('placed');
+				cellStates[r][c].placed = false;
+			});
+		});
+
+		calculateResults();
+		updateCells();
 	}
 
 	function createRow(rowIndex) {
@@ -367,6 +392,7 @@
 				}
 			}
 		}
+		localStorage.setItem('cellStates', JSON.stringify(cellStates));
 
 		const quality = document.querySelector('#quality').value;
 		const power = total * 100;
