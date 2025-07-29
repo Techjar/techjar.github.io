@@ -248,6 +248,9 @@
 	
 	function updateCell(r, c, cell) {
 		const state = cellStates[r]?.[c];
+		 // Reset background color and title
+		cell.style.backgroundColor = "";
+		cell.title = "";
 		if (state?.placed) {
 			let span = cell.querySelector('span');
 			if (!span) {
@@ -259,9 +262,6 @@
 			if (percent === 600) {
 				cell.style.backgroundColor = "#a23333";
 				cell.title = "Reactor cannot be fueled."
-			} else {
-				cell.style.backgroundColor = ""; // Reset background color
-				cell.title = "";
 			}
 		} else {
 			const span = cell.querySelector('span');
