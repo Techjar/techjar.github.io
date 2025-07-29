@@ -185,6 +185,14 @@
 		<td><img src="https://wiki.factorio.com/images/Fusion_power_cell.png"></td>
 		<td id="fusioncells"></td>
 	</tr>
+	<tr>
+		<td><img src="https://wiki.factorio.com/images/Fluoroketone_%28cold%29_barrel.png"></td>
+		<td id="fluoroketone"></td>
+	</tr>
+	<tr>
+		<td><img src="https://wiki.factorio.com/images/Fluoroketone_%28hot%29.png"></td>
+		<td id="hot_fluoroketone"></td>
+	</tr>
 </table>
 </div>
 
@@ -410,6 +418,8 @@
 		document.querySelector('#reactors').textContent = `${count}`;
 		document.querySelector('#generators').textContent = `${power / 50}`;
 		document.querySelector('#fusioncells').textContent = `${(count * quality * 0.15).toFixed(2)}/m`;
+		document.querySelector('#fluoroketone').textContent = `${count * 20} (${count}k units)`;
+		document.querySelector('#hot_fluoroketone').textContent = `${(count * 4 * quality).toFixed(1)}/s`;
 	}
 	
 	function storePersistence() {
