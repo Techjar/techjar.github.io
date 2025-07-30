@@ -341,7 +341,7 @@
 		numRows++;
 		// Add new row to state
 		cellStates.push(new Array(numCols).fill().map(() => ({placed: false, multiplier: 0})));
-		storePersistence();
+		calculateResults();
 		renderGrid();
 	}
 
@@ -358,7 +358,7 @@
 		numCols++;
 		// Add new column state to each row
 		cellStates.forEach(row => row.push({placed: false, multiplier: 0}));
-		storePersistence();
+		calculateResults();
 		renderGrid();
 	}
 
