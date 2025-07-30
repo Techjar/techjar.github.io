@@ -16,6 +16,7 @@
 
 		.controls {
 			margin-bottom: 1rem;
+			white-space: nowrap;
 		}
 
 		.controls button {
@@ -36,6 +37,7 @@
 		}
 
 		.controls select {
+			margin-right: 0.5rem;
 			background-color: #333;
 			color: #ddd;
 			border: 1px solid #555;
@@ -50,6 +52,17 @@
 			background-repeat: no-repeat;
 			background-position: right 10px center;
 			background-size: 10px 6px;
+			transition: background-color 0.1s, border-color 0.1s;
+		}
+		
+		.controls input[type="text"] {
+			margin-right: 0.5rem;
+			padding: 0.5rem 1rem;
+			font-size: 1rem;
+			background: #333;
+			color: #ddd;
+			border: 1px solid #555;
+			border-radius: 4px;
 			transition: background-color 0.1s, border-color 0.1s;
 		}
 
@@ -176,6 +189,7 @@
 		<option value="1.9">Epic Quality</option>
 		<option value="2.5">Legendary Quality</option>
 	</select>
+	Share: <input type="text" id="sharelink" readonly>
 </div>
 
 <table class="results">
@@ -209,15 +223,9 @@
 <script>
 	const grid = document.getElementById('grid');
 
-	function getItemOrDefault(item, def) {
-		if (localStorage.getItem(item) !== null)
-			return localStorage.getItem(item);
-		return def;
-	}
-
-	let numRows = parseInt(getItemOrDefault('numRows', 5));
-	let numCols = parseInt(getItemOrDefault('numCols', 5));
-	let offsetMode = getItemOrDefault('offsetMode', 'vertical'); // 'horizontal' or 'vertical'
+	let numRows = 5;
+	let numCols = 5;
+	let offsetMode = 'vertical'; // 'horizontal' or 'vertical'
 
 	// State array to persist cell states
 	let cellStates = [];
@@ -229,18 +237,6 @@
 		}
 	}
 	initStates();
-	
-	if (localStorage.getItem('cellStates') !== null) {
-		try {
-			cellStates = JSON.parse(localStorage.getItem('cellStates'));
-		} catch (error) {
-			initStates();
-		}
-	}
-	
-	if (localStorage.getItem('quality') !== null) {
-		document.querySelector('#quality').selectedIndex = parseInt(localStorage.getItem('quality'));
-	}
 
 	function createCell(r, c) {
 		const cell = document.createElement('div');
@@ -415,14 +411,10 @@
 		document.querySelector('#fusioncells').textContent = `${(count * quality * 0.15).toFixed(2)}/m`;
 		document.querySelector('#fluoroketone').textContent = `${count * 20} (${count}k units)`;
 		document.querySelector('#hot_fluoroketone').textContent = `${(count * 4 * quality).toFixed(1)}/s`;
-	}
-	
-	function storePersistence() {
-		localStorage.setItem('cellStates', JSON.stringify(cellStates));
-		localStorage.setItem('numRows', numRows);
-		localStorage.setItem('numCols', numCols);
-		localStorage.setItem('offsetMode', offsetMode);
-		localStorage.setItem('quality', document.querySelector('#quality').selectedIndex);
+		
+		compressToBase64(JSON.stringify(writeData()), 'deflate').then(base64 => {
+			document.querySelector('#sharelink').value = `${window.location.href.split("#")[0]}#${base64}`;
+		});
 	}
 
 	function getNeighbors(r, c) {
@@ -447,8 +439,93 @@
 		}
 	}
 
-	calculateResults();
-	renderGrid();
+	function writeData() {
+		return {
+			cellStates: cellStates.map(row => row.map(cell => cell.placed)),
+			numRows: numRows,
+			numCols: numCols,
+			offsetMode: offsetMode,
+			quality: document.querySelector('#quality').selectedIndex
+		};
+	}
+
+	function readData(data) {
+		numRows = data.numRows;
+		numCols = data.numCols;
+
+		initStates();
+		data.cellStates.forEach((row, r) => {
+			row.forEach((cell, c) => {
+				cellStates[r][c].placed = cell;
+			});
+		});
+
+		offsetMode = data.offsetMode;
+		document.querySelector('#quality').selectedIndex = data.quality;
+	}
+
+	function storePersistence() {
+		let data = writeData();
+		for (const key in data) {
+			localStorage.setItem(key, JSON.stringify(data[key]));
+		}
+	}
+
+	function loadPersistence() {
+		let data = writeData();
+		for (const key in data) {
+			let item = localStorage.getItem(key);
+			if (item !== null) {
+				try {
+					data[key] = JSON.parse(item);
+				} catch (error) {
+					console.log(error);
+				}
+			}
+		}
+		readData(data);
+	}
+
+	function compressToBase64(string, encoding) {
+		const byteArray = new TextEncoder().encode(string);
+		const cs = new CompressionStream(encoding);
+		const writer = cs.writable.getWriter();
+		writer.write(byteArray);
+		writer.close();
+		return new Response(cs.readable).arrayBuffer().then(buffer => btoa(String.fromCharCode.apply(null, new Uint8Array(buffer))));
+	}
+
+	function decompressFromBase64(base64, encoding) {
+		var binaryString = atob(base64);
+		var bytes = new Uint8Array(binaryString.length);
+		for (var i = 0; i < binaryString.length; i++) {
+			bytes[i] = binaryString.charCodeAt(i);
+		}
+
+		const cs = new DecompressionStream(encoding);
+		const writer = cs.writable.getWriter();
+		writer.write(bytes.buffer);
+		writer.close();
+		return new Response(cs.readable).arrayBuffer().then(arrayBuffer => new TextDecoder().decode(arrayBuffer));
+	}
+
+	loadPersistence();
+	if (window.location.hash) {
+		try {
+			decompressFromBase64(window.location.hash.substring(1), 'deflate').then(json => {
+				let data = JSON.parse(json);
+				readData(data);
+				calculateResults();
+				renderGrid();
+			});
+		} catch (error) {
+			console.log(error);
+		}
+		window.location.hash = '';
+	} else {
+		calculateResults();
+		renderGrid();
+	}
 </script>
 
 </body>
