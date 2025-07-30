@@ -33,6 +33,10 @@
 			flex-wrap: wrap;
 			gap: 1rem;
 		}
+		
+		.controls > span {
+			white-space: nowrap;
+		}
 
 		.controls button {
 			padding: 0.5rem 1rem;
@@ -190,14 +194,16 @@
 	<button onclick="removeColumn()">- Column</button>
 	<button id="toggleoffsetmode" onclick="toggleOffsetMode()">Switch to Horizontal</button>
 	<button onclick="clearCells()">Clear Layout</button>
-	<select id="quality" onchange="calculateResults()">
-		<option value="1.0">Normal Quality</option>
-		<option value="1.3">Uncommon Quality</option>
-		<option value="1.6">Rare Quality</option>
-		<option value="1.9">Epic Quality</option>
-		<option value="2.5">Legendary Quality</option>
-	</select>
-	<span style="white-space: nowrap;">
+	<span>
+		Quality: <select id="quality" onchange="calculateResults()">
+			<option value="1.0">Normal</option>
+			<option value="1.3">Uncommon</option>
+			<option value="1.6">Rare</option>
+			<option value="1.9">Epic</option>
+			<option value="2.5">Legendary</option>
+		</select>
+	</span>
+	<span>
 		Share: <input type="text" id="sharelink" onfocus="select()" readonly>
 	</span>
 </div>
