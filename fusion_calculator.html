@@ -8,19 +8,33 @@
 			background: #181818;
 			color: #ddd;
 			padding: 2rem;
+			margin: 0;
 			font-family: sans-serif;
 			display: flex;
-			gap: 10px;
 			align-items: flex-start;
+			flex-direction: column;
+			width: calc(100vw - 4rem);
+			height: calc(100vh - 4rem);
+		}
+		
+		.layout {
+			display: flex;
+			gap: 2.5rem;
+			align-items: flex-start;
+			flex: 0 1 auto;
+			min-height: 0;
+			width: 100%;
 		}
 
 		.controls {
 			margin-bottom: 1rem;
-			white-space: nowrap;
+			flex: 0 1 auto;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 1rem;
 		}
 
 		.controls button {
-			margin-right: 0.5rem;
 			padding: 0.5rem 1rem;
 			font-size: 1rem;
 			background: #333;
@@ -37,7 +51,6 @@
 		}
 
 		.controls select {
-			margin-right: 0.5rem;
 			background-color: #333;
 			color: #ddd;
 			border: 1px solid #555;
@@ -56,7 +69,6 @@
 		}
 
 		.controls input[type="text"] {
-			margin-right: 0.5rem;
 			padding: 0.5rem 1rem;
 			font-size: 1rem;
 			background: #333;
@@ -79,21 +91,23 @@
 		.grid {
 			display: flex;
 			gap: 10px;
-			flex-direction: column;
+			overflow: scroll;
+			flex: 1 1 auto;
+			height: 100%;
 		}
 
 		.grid.horizontal {
-			padding-right: 65px;
+			flex-direction: column;
 		}
 
 		.grid.vertical {
 			flex-direction: row;
-			padding-bottom: 65px;
 		}
 
 		.row, .column {
 			display: flex;
 			gap: 10px;
+			flex-shrink: 0;
 		}
 
 		.column {
@@ -101,11 +115,11 @@
 		}
 
 		.offset-h {
-			transform: translateX(55px);
+			margin-left: 55px;
 		}
 
 		.offset-v {
-			transform: translateY(55px);
+			margin-top: 55px;
 		}
 
 		.cell {
@@ -117,6 +131,7 @@
 			cursor: pointer;
 			position: relative;
 			transition: background-color 0.1s, border-color 0.1s;
+			flex-shrink: 0;
 		}
 		
 		.cell:hover {
@@ -145,6 +160,7 @@
 			border: 2px solid #444;
 			padding: 0;
 			border-spacing: 0;
+			flex: 0 0 auto;
 		}
 		
 		.results tr:not(:last-child) td {
@@ -167,7 +183,6 @@
 </head>
 <body>
 
-<div>
 <div class="controls">
 	<button onclick="addRow()">+ Row</button>
 	<button onclick="removeRow()">- Row</button>
@@ -175,13 +190,6 @@
 	<button onclick="removeColumn()">- Column</button>
 	<button id="toggleoffsetmode" onclick="toggleOffsetMode()">Switch to Horizontal</button>
 	<button onclick="clearCells()">Clear Layout</button>
-</div>
-
-<div id="grid" class="grid"></div>
-</div>
-
-<div>
-<div class="controls">
 	<select id="quality" onchange="calculateResults()">
 		<option value="1.0">Normal Quality</option>
 		<option value="1.3">Uncommon Quality</option>
@@ -189,9 +197,13 @@
 		<option value="1.9">Epic Quality</option>
 		<option value="2.5">Legendary Quality</option>
 	</select>
-	Share: <input type="text" id="sharelink" onfocus="select()" readonly>
+	<span style="white-space: nowrap;">
+		Share: <input type="text" id="sharelink" onfocus="select()" readonly>
+	</span>
 </div>
 
+<div class="layout">
+<div id="grid" class="grid"></div>
 <table class="results">
 	<tr>
 		<td><img src="https://wiki.factorio.com/images/Substation.png"></td>
@@ -373,7 +385,6 @@
 
 	function toggleOffsetMode() {
 		offsetMode = offsetMode === 'horizontal' ? 'vertical' : 'horizontal';
-		document.querySelector('#toggleoffsetmode').textContent = offsetMode === 'horizontal' ? 'Switch to Vertical' : 'Switch to Horizontal';
 		calculateResults();
 		renderGrid();
 	}
@@ -411,10 +422,12 @@
 		document.querySelector('#fusioncells').textContent = `${(count * quality * 0.15).toFixed(2)}/m`;
 		document.querySelector('#fluoroketone').textContent = `${count * 20} (${count}k units)`;
 		document.querySelector('#hot_fluoroketone').textContent = `${(count * 4 * quality).toFixed(1)}/s`;
-		
+
 		compressToBase64(JSON.stringify(writeData()), 'deflate').then(base64 => {
 			document.querySelector('#sharelink').value = `${window.location.href.split("#")[0]}#${base64}`;
 		});
+
+		document.querySelector('#toggleoffsetmode').textContent = offsetMode === 'horizontal' ? 'Switch to Vertical' : 'Switch to Horizontal';
 	}
 
 	function getNeighbors(r, c) {
