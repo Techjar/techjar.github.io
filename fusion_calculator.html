@@ -5,7 +5,7 @@
 	<title>Factorio Fusion Reactor Calculator</title>
 	<style>
 		body {
-			background: #1e1e1e;
+			background: #181818;
 			color: #ddd;
 			padding: 2rem;
 			font-family: sans-serif;
@@ -22,21 +22,22 @@
 			margin-right: 0.5rem;
 			padding: 0.5rem 1rem;
 			font-size: 1rem;
-			background: #2e2e2e;
+			background: #333;
 			color: #ddd;
-			border: 1px solid #444;
+			border: 1px solid #555;
 			border-radius: 4px;
 			cursor: pointer;
 			transition: background-color 0.1s, border-color 0.1s;
 		}
 
 		.controls button:hover {
-			background: #3e3e3e;
+			background: #444;
+			border-color: #777;
 		}
 
 		.controls select {
 			background-color: #333;
-			color: #fff;
+			color: #ddd;
 			border: 1px solid #555;
 			border-radius: 4px;
 			padding: 0.5rem 1.7rem 0.5rem 1rem;
@@ -107,6 +108,11 @@
 		
 		.cell:hover {
 			background-color: #363636;
+			border-color: #666;
+		}
+		
+		.cell.invalid {
+			background-color: #a23333;
 		}
 
 		.cell.placed {
@@ -135,6 +141,10 @@
 		.results td {
 			margin: 0;
 			padding: 10px;
+		}
+		
+		.results td:first-child {
+			background: #1e1e1e;
 		}
 		
 		.results td:not(:last-child) {
@@ -182,10 +192,6 @@
 		<td id="generators"></td>
 	</tr>
 	<tr>
-		<td><img src="https://wiki.factorio.com/images/Fusion_power_cell.png"></td>
-		<td id="fusioncells"></td>
-	</tr>
-	<tr>
 		<td><img src="https://wiki.factorio.com/images/Fluoroketone_%28cold%29_barrel.png"></td>
 		<td id="fluoroketone"></td>
 	</tr>
@@ -193,17 +199,21 @@
 		<td><img src="https://wiki.factorio.com/images/Fluoroketone_%28hot%29.png"></td>
 		<td id="hot_fluoroketone"></td>
 	</tr>
+	<tr>
+		<td><img src="https://wiki.factorio.com/images/Fusion_power_cell.png"></td>
+		<td id="fusioncells"></td>
+	</tr>
 </table>
 </div>
 
 <script>
+	const grid = document.getElementById('grid');
+
 	function getItemOrDefault(item, def) {
 		if (localStorage.getItem(item) !== null)
 			return localStorage.getItem(item);
 		return def;
 	}
-	
-	const grid = document.getElementById('grid');
 
 	let numRows = parseInt(getItemOrDefault('numRows', 5));
 	let numCols = parseInt(getItemOrDefault('numCols', 5));
@@ -256,28 +266,16 @@
 	}
 	
 	function updateCells() {
-		if (offsetMode === 'horizontal') {
-			grid.querySelectorAll('.row').forEach((rowEl, r) => {
-				const cells = rowEl.querySelectorAll('.cell');
-				cells.forEach((cell, c) => {
-					updateCell(r, c, cell);
-				});
-			});
-		} else {
-			grid.querySelectorAll('.column').forEach((rowEl, c) => {
-				const cells = rowEl.querySelectorAll('.cell');
-				cells.forEach((cell, r) => {
-					updateCell(r, c, cell);
-				});
-			});
-		}
+		grid.querySelectorAll('.cell').forEach((cell) => {
+			updateCell(cell.dataset.row, cell.dataset.col, cell);
+		});
 	}
 	
 	function updateCell(r, c, cell) {
 		const state = cellStates[r]?.[c];
 		 // Reset background color and title
-		cell.style.backgroundColor = "";
-		cell.title = "";
+		cell.classList.remove('invalid');
+		cell.removeAttribute('title');
 		if (state?.placed) {
 			let span = cell.querySelector('span');
 			if (!span) {
@@ -287,7 +285,7 @@
 			const percent = (state.multiplier - 1) * 100;
 			span.textContent = '+' + percent + '%';
 			if (percent === 600) {
-				cell.style.backgroundColor = "#a23333";
+				cell.classList.add('invalid');
 				cell.title = "Reactor cannot be automatically fueled!"
 			}
 		} else {
@@ -297,12 +295,9 @@
 	}
 	
 	function clearCells() {
-		grid.querySelectorAll('.row, .column').forEach((rowEl, r) => {
-			const cells = rowEl.querySelectorAll('.cell');
-			cells.forEach((cell, c) => {
-				cell.classList.remove('placed');
-				cellStates[r][c].placed = false;
-			});
+		grid.querySelectorAll('.cell').forEach((cell) => {
+			cell.classList.remove('placed');
+			cellStates[cell.dataset.row][cell.dataset.col].placed = false;
 		});
 
 		calculateResults();
