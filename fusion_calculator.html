@@ -546,19 +546,23 @@
 	calculateResults();
 	renderGrid();
 
-	if (window.location.hash) {
-		try {
-			decompressFromBase64(window.location.hash.substring(1), 'deflate').then(json => {
-				let data = JSON.parse(json);
-				readData(data);
-				calculateResults();
-				renderGrid();
-			});
-		} catch (error) {
-			console.log(error);
+	function loadFromHash() {
+		if (window.location.hash) {
+			try {
+				decompressFromBase64(window.location.hash.substring(1), 'deflate').then(json => {
+					let data = JSON.parse(json);
+					readData(data);
+					calculateResults();
+					renderGrid();
+				});
+			} catch (error) {
+				console.log(error);
+			}
+			window.location.hash = '';
 		}
-		window.location.hash = '';
 	}
+	loadFromHash();
+	window.onhashchange = loadFromHash;
 </script>
 
 </body>
