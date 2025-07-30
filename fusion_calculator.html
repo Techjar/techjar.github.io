@@ -510,6 +510,9 @@
 	}
 
 	loadPersistence();
+	calculateResults();
+	renderGrid();
+
 	if (window.location.hash) {
 		try {
 			decompressFromBase64(window.location.hash.substring(1), 'deflate').then(json => {
@@ -522,9 +525,6 @@
 			console.log(error);
 		}
 		window.location.hash = '';
-	} else {
-		calculateResults();
-		renderGrid();
 	}
 </script>
 
