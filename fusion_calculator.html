@@ -4,6 +4,10 @@
 	<meta charset="UTF-8">
 	<title>Factorio Fusion Reactor Calculator</title>
 	<style>
+		:root {
+			--grid-scale: 1;
+		}
+
 		body {
 			background: #181818;
 			color: #ddd;
@@ -17,7 +21,7 @@
 			width: 100vw;
 			height: 100vh;
 		}
-		
+
 		.layout {
 			display: flex;
 			gap: 2.5rem;
@@ -82,20 +86,53 @@
 			border-radius: 4px;
 			transition: background-color 0.1s, border-color 0.1s;
 		}
+		
+		.controls input[type="range"] {
+			-webkit-appearance: none;
+			padding: 0;
+			margin: 0;
+			width: 150px;
+			height: 2.437rem;
+			background: #333;
+			color: #ddd;
+			border: 1px solid #555;
+			border-radius: 4px;
+			transition: background-color 0.1s, border-color 0.1s;
+			vertical-align: middle;
+			cursor: pointer;
+		}
 
-		.controls select:hover, .controls input[type="text"]:hover {
+		.controls input[type="range"]::-webkit-slider-thumb, .controls input[type="range"]::-moz-range-thumb {
+			width: 25px;
+			height: 100%;
+			background: #555;
+			border: none;
+			border-radius: 4px;
+			transition: background-color 0.1s;
+		}
+		
+		.controls input[type="range"]:hover::-webkit-slider-thumb, .controls input[type="range"]:hover::-moz-range-thumb {
+			background: #777;
+		}
+
+		.controls input[type="range"]::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			appearance: none;
+		}
+
+		.controls select:hover, .controls input[type="text"]:hover, .controls input[type="range"]:hover {
 			background-color: #444;
 			border-color: #777;
 		}
 
-		.controls select:focus, .controls input[type="text"]:focus {
+		.controls select:focus, .controls input[type="text"]:focus, .controls input[type="range"]:focus {
 			outline: none;
 			border-color: #999;
 		}
 
 		.grid {
 			display: flex;
-			gap: 10px;
+			gap: calc(10px * var(--grid-scale));
 			overflow: scroll;
 			flex: 1 1 auto;
 			height: 100%;
@@ -111,7 +148,7 @@
 
 		.row, .column {
 			display: flex;
-			gap: 10px;
+			gap: calc(10px * var(--grid-scale));
 			flex-shrink: 0;
 		}
 
@@ -120,18 +157,18 @@
 		}
 
 		.row:nth-child(even) {
-			margin-left: 55px;
+			margin-left: calc(55px * var(--grid-scale));
 		}
 
 		.column:nth-child(even) {
-			margin-top: 55px;
+			margin-top: calc(55px * var(--grid-scale));
 		}
 
 		.cell {
-			width: 100px;
-			height: 100px;
+			width: calc(100px * var(--grid-scale));
+			height: calc(100px * var(--grid-scale));
 			background: center no-repeat #262626;
-			border: 2px solid #444;
+			border: calc(2px * var(--grid-scale)) solid #444;
 			box-sizing: border-box;
 			cursor: pointer;
 			position: relative;
@@ -146,6 +183,7 @@
 
 		.cell.placed {
 			background-image: url('https://wiki.factorio.com/images/Fusion_reactor.png');
+			background-size: calc(64px * var(--grid-scale));
 		}
 
 		.cell.invalid {
@@ -154,9 +192,9 @@
 
 		.cell span {
 			position: absolute;
-			font-size: 12px;
+			font-size: calc(12px * var(--grid-scale));
 			text-align: center;
-			bottom: 1px;
+			bottom: calc(1px * var(--grid-scale));
 			width: 100%;
 			pointer-events: none;
 		}
@@ -206,6 +244,9 @@
 	</span>
 	<span>
 		Share: <input type="text" id="sharelink" onfocus="select()" readonly>
+	</span>
+	<span>
+		Grid Size: <input type="range" id="gridscale" oninput="updateGridScale()" onchange="updateGridScale()" min="0.2" max="1" step="any" value="1">
 	</span>
 </div>
 
@@ -407,7 +448,12 @@
 		calculateResults();
 		renderGrid();
 	}
-	
+
+	function updateGridScale() {
+		document.querySelector(':root').style.setProperty('--grid-scale', document.querySelector('#gridscale').value);
+		storePersistence();
+	}
+
 	function calculateResults() {
 		let total = 0;
 		let count = 0;
@@ -501,6 +547,7 @@
 		for (const key in data) {
 			localStorage.setItem(key, JSON.stringify(data[key]));
 		}
+		localStorage.setItem('gridScale', document.querySelector('#gridscale').value);
 	}
 
 	function loadPersistence() {
@@ -516,6 +563,8 @@
 			}
 		}
 		readData(data);
+		document.querySelector('#gridscale').value = localStorage.getItem('gridScale') ?? 1;
+		updateGridScale();
 	}
 
 	function compressToBase64(string, encoding) {
