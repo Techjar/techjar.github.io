@@ -222,6 +222,34 @@
 		.results td:not(:last-child) {
 			border-right: 2px solid #444;
 		}
+		
+		.quality-1, .quality-2, .quality-3, .quality-4 {
+			position: relative;
+		}
+		
+		.quality-1::after, .quality-2::after, .quality-3::after, .quality-4::after {
+			width: 16px;
+			height: 16px;
+			position: absolute;
+			bottom: 10px;
+			left: 10px;
+		}
+		
+		.quality-1::after {
+			content: url('https://wiki.factorio.com/images/thumb/Quality_uncommon.png/16px-Quality_uncommon.png');
+		}
+		
+		.quality-2::after {
+			content: url('https://wiki.factorio.com/images/thumb/Quality_rare.png/16px-Quality_rare.png');
+		}
+		
+		.quality-3::after {
+			content: url('https://wiki.factorio.com/images/thumb/Quality_epic.png/16px-Quality_epic.png');
+		}
+		
+		.quality-4::after {
+			content: url('https://wiki.factorio.com/images/thumb/Quality_legendary.png/16px-Quality_legendary.png');
+		}
 	</style>
 </head>
 <body>
@@ -234,13 +262,22 @@
 	<button id="toggleoffsetmode" onclick="toggleOffsetMode()">Switch to Horizontal</button>
 	<button onclick="clearCells()">Clear Layout</button>
 	<span>
-		Quality: <select id="quality" onchange="calculateResults()">
-			<option value="1.0">Normal</option>
-			<option value="1.3">Uncommon</option>
-			<option value="1.6">Rare</option>
-			<option value="1.9">Epic</option>
-			<option value="2.5">Legendary</option>
+		Quality: <select id="reactorquality" onchange="calculateResults()">
+			<option value="1.0">Normal Reactor</option>
+			<option value="1.3">Uncommon Reactor</option>
+			<option value="1.6">Rare Reactor</option>
+			<option value="1.9">Epic Reactor</option>
+			<option value="2.5">Legendary Reactor</option>
 		</select>
+		<select id="generatorquality" onchange="calculateResults()">
+			<option value="1.0">Normal Generator</option>
+			<option value="1.3">Uncommon Generator</option>
+			<option value="1.6">Rare Generator</option>
+			<option value="1.9">Epic Generator</option>
+			<option value="2.5">Legendary Generator</option>
+		</select>
+	</span>
+	<span>
 	</span>
 	<span>
 		Share: <input type="text" id="sharelink" onfocus="select()" readonly>
@@ -258,11 +295,11 @@
 		<td id="power"></td>
 	</tr>
 	<tr>
-		<td><img src="https://wiki.factorio.com/images/Fusion_reactor.png"></td>
+		<td id="reactoricon"><img src="https://wiki.factorio.com/images/Fusion_reactor.png"></td>
 		<td id="reactors"></td>
 	</tr>
 	<tr>
-		<td><img src="https://wiki.factorio.com/images/Fusion_generator.png"></td>
+		<td id="generatoricon"><img src="https://wiki.factorio.com/images/Fusion_generator.png"></td>
 		<td id="generators"></td>
 	</tr>
 	<tr>
@@ -478,21 +515,24 @@
 		}
 		storePersistence();
 
-		const quality = document.querySelector('#quality').value;
+		const rQuality = document.querySelector('#reactorquality').value;
+		const gQuality = document.querySelector('#generatorquality').value;
 		const power = total * 100;
 
-		document.querySelector('#power').textContent = `${(power * quality / 1000).toFixed(1)} GW`;
+		document.querySelector('#power').textContent = `${(power * rQuality / 1000).toFixed(1)} GW`;
 		document.querySelector('#reactors').textContent = `${count}`;
-		document.querySelector('#generators').textContent = `${power / 50}`;
-		document.querySelector('#fusioncells').textContent = `${(count * quality * 0.15).toFixed(2)}/m`;
+		document.querySelector('#generators').textContent = `${Math.ceil((power * rQuality) / (50 * gQuality))}`;
+		document.querySelector('#fusioncells').textContent = `${(count * rQuality * 0.15).toFixed(2)}/m`;
 		document.querySelector('#fluoroketone').textContent = `${count * 20} (${count}k units)`;
-		document.querySelector('#hot_fluoroketone').textContent = `${(count * 4 * quality).toFixed(1)}/s`;
+		document.querySelector('#hot_fluoroketone').textContent = `${(count * 4 * rQuality).toFixed(1)}/s`;
 
 		compressToBase64(JSON.stringify(writeData()), 'deflate').then(base64 => {
 			document.querySelector('#sharelink').value = `${window.location.href.split("#")[0]}#${base64}`;
 		});
 
 		document.querySelector('#toggleoffsetmode').textContent = offsetMode === 'horizontal' ? 'Switch to Vertical' : 'Switch to Horizontal';
+		document.querySelector('#reactoricon').className = `quality-${document.querySelector('#reactorquality').selectedIndex}`;
+		document.querySelector('#generatoricon').className = `quality-${document.querySelector('#generatorquality').selectedIndex}`;
 	}
 
 	function getNeighbors(r, c) {
@@ -523,7 +563,8 @@
 			numRows: numRows,
 			numCols: numCols,
 			offsetMode: offsetMode,
-			quality: document.querySelector('#quality').selectedIndex
+			reactorQuality: document.querySelector('#reactorquality').selectedIndex,
+			generatorQuality: document.querySelector('#generatorquality').selectedIndex
 		};
 	}
 
@@ -539,7 +580,14 @@
 		});
 
 		offsetMode = data.offsetMode;
-		document.querySelector('#quality').selectedIndex = data.quality;
+		
+		if (data.quality !== undefined) {
+			document.querySelector('#reactorquality').selectedIndex = data.quality;
+			document.querySelector('#generatorquality').selectedIndex = data.quality;
+		} else {
+			document.querySelector('#reactorquality').selectedIndex = data.reactorQuality;
+			document.querySelector('#generatorquality').selectedIndex = data.generatorQuality;
+		}
 	}
 
 	function storePersistence() {
