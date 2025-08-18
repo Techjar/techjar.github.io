@@ -89,7 +89,6 @@
 	
 		@-moz-document url-prefix() {
 			.controls input[type="range"] {
-				-webkit-appearance: none;
 				appearance: none;
 				padding: 0;
 				margin: 0;
@@ -104,7 +103,7 @@
 				cursor: pointer;
 			}
 
-			.controls input[type="range"]::-webkit-slider-thumb, .controls input[type="range"]::-moz-range-thumb {
+			.controls input[type="range"]::-moz-range-thumb {
 				width: 25px;
 				height: 100%;
 				z-index: 1143;
@@ -113,23 +112,28 @@
 				border-radius: 4px;
 				transition: background-color 0.1s;
 			}
-		}
 		
-		.controls input[type="range"]:hover::-webkit-slider-thumb, .controls input[type="range"]:hover::-moz-range-thumb {
-			background: #777;
+			.controls input[type="range"]:hover::-moz-range-thumb {
+				background: #777;
+			}
+
+			.controls input[type="range"]:hover {
+				background-color: #444;
+				border-color: #777;
+			}
+
+			.controls input[type="range"]:focus {
+				outline: none;
+				border-color: #999;
+			}
 		}
 
-		.controls input[type="range"]::-webkit-slider-thumb {
-			-webkit-appearance: none;
-			appearance: none;
-		}
-
-		.controls select:hover, .controls input[type="text"]:hover, .controls input[type="range"]:hover {
+		.controls select:hover, .controls input[type="text"]:hover {
 			background-color: #444;
 			border-color: #777;
 		}
 
-		.controls select:focus, .controls input[type="text"]:focus, .controls input[type="range"]:focus {
+		.controls select:focus, .controls input[type="text"]:focus {
 			outline: none;
 			border-color: #999;
 		}
